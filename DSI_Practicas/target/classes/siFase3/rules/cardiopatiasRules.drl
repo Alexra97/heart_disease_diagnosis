@@ -1,0 +1,82 @@
+package siFase3.rules
+
+import sintomas.*;
+import cardiopatias.*;
+
+rule "Detectar Hipopotasemia"
+agenda-group "cardiopatias"
+    when
+    	$tpn : OndaTPlanaNegativa()
+    	not Hipopotasemia()
+    then	
+    	insert(new Hipopotasemia());
+end
+
+rule "Detectar Hipocalcemia"
+agenda-group "cardiopatias"
+    when
+    	$stp: SegSTProlongado()
+    	not Hipocalcemia()
+    then	
+    	insert(new Hipocalcemia());
+end
+
+rule "Detectar Infarto Agudo de Miocardio"
+agenda-group "cardiopatias"
+    when
+    	$otp: OndaTPronunciada()
+    	not InfartoAgudoDeMiocardio()
+    then	
+    	insert(new InfartoAgudoDeMiocardio());
+end
+
+rule "Detectar Isquemia Coronaria"
+agenda-group "cardiopatias"
+     when
+    	$tpn : OndaTPlanaNegativa()
+    	not IsquemiaCoronaria()
+    then	
+    	insert(new IsquemiaCoronaria());
+end
+
+rule "Detectar Bradicardia"
+agenda-group "cardiopatias"
+    when
+    	$rl : RitmoLento()
+    	$tpp : IntTPProlongado()
+    	not Bradicardia()
+    then	
+    	insert(new Bradicardia());
+end
+
+rule "Detectar Taquicardia"
+agenda-group "cardiopatias"
+    when
+    	$rr : RitmoRapido()
+    	$tpr : IntPRReducido()
+    	not Taquicardia()
+    then	
+    	insert(new Taquicardia());
+end
+
+rule "Detectar Aleteo Auricular (Flutter)"
+agenda-group "cardiopatias"
+    when
+    	$prr : IntPRReducido()
+    	$rma : RitmoMuyRapido()
+    	$tpd : IntTPDesaparecido()
+    	not AleteoAuricular()
+    then	
+    	insert(new AleteoAuricular());
+end
+
+rule "Detectar Contracción Ventrícular Prematura (PVC)"
+agenda-group "cardiopatias"
+    when
+    	$qrsr : ComplejoQRSReducido()
+    	not ContraccionPrematuraVentricular()
+    then	
+    	insert(new ContraccionPrematuraVentricular());
+end
+
+

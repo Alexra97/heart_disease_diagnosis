@@ -1,0 +1,66 @@
+package siFase3.rules
+
+import sintomas.Sintoma;
+import cardiopatias.Cardiopatia;
+import elementosECG.DatosECG;
+
+rule "Impresion datos generales"
+agenda-group "informe"
+salience 100
+	when
+		$dECG: DatosECG()
+	then
+		System.out.println("Datos generales ECG");
+	    	System.out.println("\t- Numero de ciclos = " + $dECG.getNumCiclos());
+	    	System.out.println("\t- Pulsaciones por minuto = " + $dECG.getPulsacionesPorMin());
+end
+
+rule "Corazon sano"
+agenda-group "informe"
+salience 50
+	when
+		not Sintoma()
+	then
+		System.out.println("*** Corazon sano ***");
+end
+
+rule "Impresion previa cardiopatias"
+agenda-group "informe"
+salience 50
+	when
+		$s: Sintoma()
+		not Sintoma(cicloDetectado < $s.cicloDetectado)
+	then
+		System.out.println("Cardiopatías detectadas:");
+end
+
+rule "Impresion cardiopatias"
+agenda-group "informe"
+salience 40
+	when
+		$c : Cardiopatia()
+	then
+		System.out.println("\t -  " + $c.getNombre());
+end
+
+rule "Impresion previa sintomas"
+agenda-group "informe"
+salience 30
+	when
+		$s: Sintoma()
+		not Sintoma(cicloDetectado < $s.cicloDetectado)
+	then
+		System.out.println("Debidas a los síntomas:");
+end
+
+rule "Impresion sintomas"
+agenda-group "informe"
+salience 20
+	when
+		$s : Sintoma()
+		not Sintoma(getClass()==$s.getClass(), cicloDetectado <$s.cicloDetectado)
+	then
+		System.out.println("\t **  " + $s.getDescripcion());
+end
+
+

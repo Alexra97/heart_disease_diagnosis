@@ -1,0 +1,90 @@
+package siFase3.rules
+
+import elementosECG.*;
+import sintomas.*;
+
+rule "Detectar Ondas T planas o negativas"
+agenda-group "sintomas"
+    when
+		$t : OndaT(puntoMax <= 0)
+    then
+		insert(new OndaTPlanaNegativa($t.getCiclo()));
+end
+
+rule "Detectar Segmentos ST prolongados"
+agenda-group "sintomas"
+    when
+		$st : SegmentoST(fin - comienzo >= 200)
+    then
+		insert(new SegSTProlongado($st.getCiclo()));
+end
+
+rule "Detectar Ondas T muy pronunciadas"
+agenda-group "sintomas"
+    when
+		$t : OndaT(puntoMax >= 1)
+    then
+		insert(new OndaTPronunciada($t.getCiclo()));
+end
+
+rule "Detectar Ritmo Cardíaco anormalmente lento"
+agenda-group "sintomas"
+    when
+		$dECG : DatosECG(pulsacionesPorMin < 60)
+    then
+		insert(new RitmoLento(0));
+end
+
+rule "Detectar Intervalo T-P prolongado"
+agenda-group "sintomas"
+    when
+		$t : OndaT()
+		$p : OndaP(ciclo == $t.ciclo+1, comienzo - $t.fin >= 200)
+    then
+		insert(new IntTPProlongado($t.getCiclo()));
+end
+
+rule "Detectar Ritmo Cardíaco anormalmente rápido"
+agenda-group "sintomas"
+    when
+		$dECG : DatosECG(pulsacionesPorMin > 100 && pulsacionesPorMin < 220)
+    then
+		insert(new RitmoRapido(0));
+end
+
+rule "Detectar Intervalo PR reducido"
+agenda-group "sintomas"
+    when
+    	$p : OndaP()
+    	$q : OndaQ(ciclo == $p.getCiclo(), comienzo - $p.comienzo <= 100)
+    then
+		insert(new IntPRReducido($q.getCiclo()));
+end
+
+rule "Detectar Ritmo Cardíaco de muy alta frecuencia"
+agenda-group "sintomas"
+    when
+		$dECG : DatosECG(pulsacionesPorMin > 220)
+    then
+		insert(new RitmoMuyRapido(0));
+end
+
+rule "Detectar desaparición del Intervalo T-P"
+agenda-group "sintomas"
+    when
+		$t : OndaT()
+		$p : OndaP(ciclo == $t.ciclo+1, comienzo - $t.fin <= 5)
+    then
+		insert(new IntTPDesaparecido($t.getCiclo()));
+end
+
+rule "Detectar reducción del Complejo QRS"
+agenda-group "sintomas"
+    when
+    	$q : OndaQ()
+    	$s : OndaS(ciclo == $q.getCiclo(), fin - $q.comienzo <= 70)
+    then
+		insert(new ComplejoQRSReducido($q.getCiclo()));
+end
+
+

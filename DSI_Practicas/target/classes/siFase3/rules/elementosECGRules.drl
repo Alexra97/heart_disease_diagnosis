@@ -1,0 +1,80 @@
+package siFase3.rules
+
+import elementosECG.*;
+
+rule "Inicializar el contador de ciclos, las pulsaciones por minuto y el diagnóstico"
+agenda-group "elementos ECG"
+salience 100
+    when
+    	not (DatosECG())
+    then
+    	insert(new DatosECG(0, 0));
+end
+
+rule "Crear los segmentos PR"
+agenda-group "elementos ECG"
+salience 50
+	when 
+		$p : OndaP()
+		$q : OndaQ(ciclo == $p.ciclo)
+	then
+		insert(new SegmentoPR($p.getCiclo(), $p.getFin(), $q.getComienzo()));
+end
+
+rule "Crear los segmentos ST"
+agenda-group "elementos ECG"
+salience 50
+	when 
+		$s : OndaS()
+		$t : OndaT(ciclo == $s.ciclo)
+	then
+		insert(new SegmentoST($s.getCiclo(), $s.getFin(), $t.getComienzo()));
+end
+		
+rule "Crear los intervalos PR"
+agenda-group "elementos ECG"
+salience 50
+	when
+		$p : OndaP()
+		$pr : SegmentoPR(ciclo == $p.ciclo)
+	then
+		insert(new IntervaloPR($p.getCiclo(), $p.getComienzo(), $pr.getFin()));
+end
+		
+rule "Crear los intervalos QT"
+agenda-group "elementos ECG"
+salience 50
+	when
+		$q : OndaQ()
+		$t : OndaT(ciclo == $q.ciclo)
+	then
+		insert(new IntervaloPR($q.getCiclo(), $q.getComienzo(), $t.getFin()));
+end
+		
+rule "Calcular numero ciclos"
+agenda-group "elementos ECG"
+salience 10
+	when 
+		$datos : DatosECG(numCiclos == 0)
+		$p : OndaP()
+			not (OndaP(comienzo>$p.comienzo))
+	then
+		modify($datos){
+			setNumCiclos($p.getCiclo());
+		}
+end
+
+rule "Calcular pulsaciones por minuto"
+agenda-group "elementos ECG"
+salience 10
+    when
+		$dECG : DatosECG(numCiclos!=0)
+		$q : OndaQ(ciclo == $dECG.numCiclos)
+    then
+    	float ultimoQRS = $q.getComienzo();
+    	int ppm = Math.round((60*$dECG.getNumCiclos()) / (ultimoQRS/1000));
+    	modify($dECG){
+    		setPulsacionesPorMin(ppm);
+    	}
+end
+
